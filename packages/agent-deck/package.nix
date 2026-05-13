@@ -46,9 +46,8 @@ buildGoModule rec {
   ldflags = [
     "-s"
     "-w"
-    "-X=main.version=${version}"
-    "-X=main.commit=v${version}"
-    "-X=main.date=1970-01-01T00:00:00Z"
+    # Upstream renamed the variable from main.version to main.Version in 1.9.x.
+    "-X=main.Version=${version}"
   ];
 
   passthru.category = "Workflow & Project Management";
