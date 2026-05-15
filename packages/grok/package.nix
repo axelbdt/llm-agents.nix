@@ -6,6 +6,9 @@
   wrapBuddy,
   versionCheckHook,
   versionCheckHomeHook,
+  bashInteractive,
+  bubblewrap,
+  zsh,
 }:
 
 let
@@ -21,6 +24,14 @@ let
 
   platform = stdenv.hostPlatform.system;
   platformSuffix = platformMap.${platform} or (throw "Unsupported system: ${platform}");
+
+  bwrapFlags = lib.concatStringsSep " " [
+    "--dev-bind / /"
+    "--tmpfs /bin"
+    "--symlink ${bashInteractive}/bin/bash /bin/bash"
+    "--symlink ${zsh}/bin/zsh /bin/zsh"
+    "--symlink ${bashInteractive}/bin/sh /bin/sh"
+  ];
 in
 stdenv.mkDerivation {
   inherit pname version;
@@ -46,13 +57,30 @@ stdenv.mkDerivation {
 
     install -Dm755 $src $out/libexec/grok/grok
 
-    makeWrapper $out/libexec/grok/grok $out/bin/grok \
+    makeWrapper $out/libexec/grok/grok $out/libexec/grok/grok-launcher \
       --argv0 grok \
       --add-flags --no-auto-update
 
-    makeWrapper $out/libexec/grok/grok $out/bin/agent \
+    makeWrapper $out/libexec/grok/grok $out/libexec/grok/agent-launcher \
       --argv0 agent \
       --add-flags --no-auto-update
+  ''
+  + lib.optionalString stdenv.hostPlatform.isLinux ''
+    install -d $out/bin
+    for name in grok agent; do
+      {
+        printf '#!%s\n' '${stdenv.shell}'
+        printf 'exec %s %s -- %s/libexec/grok/%s-launcher "$@"\n' \
+          '${bubblewrap}/bin/bwrap' '${bwrapFlags}' "$out" "$name"
+      } > $out/bin/$name
+      chmod +x $out/bin/$name
+    done
+  ''
+  + lib.optionalString (!stdenv.hostPlatform.isLinux) ''
+    ln -s $out/libexec/grok/grok-launcher $out/bin/grok
+    ln -s $out/libexec/grok/agent-launcher $out/bin/agent
+  ''
+  + ''
 
     runHook postInstall
   '';
