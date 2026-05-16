@@ -62,6 +62,7 @@ stdenv.mkDerivation {
     changelog = "https://docs.cubic.dev/ide/cli-review";
     license = licenses.unfree;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+    maintainers = with maintainers; [ ryoppippi ];
     platforms = [
       "x86_64-linux"
       "aarch64-linux"
