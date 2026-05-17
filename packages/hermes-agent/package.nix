@@ -122,13 +122,13 @@ let
     };
   };
 
-  version = "2026.5.7";
+  version = "2026.5.16";
 
   src = fetchFromGitHub {
     owner = "NousResearch";
     repo = "hermes-agent";
     rev = "v${version}";
-    hash = "sha256-YQQUEDUim2CiYpL3uG7Wi1fWPsT2wtIqoBeJuAj9hUk=";
+    hash = "sha256-d9qhrTy45Q5UsmjapqMHOVi9e+gR9zE8Nq9Z0wObLmc=";
   };
 
   # `hermes --tui` runs a compiled Ink/React app from ui-tui/ that the wheel
@@ -138,7 +138,7 @@ let
     pname = "hermes-tui";
     inherit version;
     src = "${src}/ui-tui";
-    npmDepsHash = "sha256-MLcLhjTF6dgdvNBtJWzo8Nh19eNh/ZitD2b07nm61Tc=";
+    npmDepsHash = "sha256-9r1EYQ600gNXOnNXwakorpEk7hS/FPxZVbB2JksrhYs=";
 
     installPhase = ''
       runHook preInstall
@@ -186,11 +186,16 @@ let
       rich
       tenacity
       pyyaml
+      ruamel-yaml
       requests
       jinja2
       pydantic
       # Interactive CLI
       prompt-toolkit
+      # Cron scheduler
+      croniter
+      # Process / PID management
+      psutil
       # MCP
       mcp
       # Tools
@@ -291,7 +296,9 @@ python3.pkgs.buildPythonApplication {
   ];
 
   pythonRelaxDeps = [
+    "openai"
     "tenacity"
+    "ruamel.yaml"
     "requests"
     "pydantic"
     "firecrawl-py"
