@@ -61,9 +61,13 @@ let
     # build.rs passes an explicit -Dtarget that zig treats as a cross target,
     # so build-time helper executables (uucode_build_tables) get linked against
     # the FHS dynamic loader path which doesn't exist in the sandbox.  Drop the
-    # flag so zig uses the native target and picks up the wrapped libc paths.
+    # flag so zig uses the native target and picks up the wrapped libc paths,
+    # but keep Zig's CPU baseline explicit to avoid build-host CPU features
+    # leaking into the output.
     postPatch = ''
       substituteInPlace build.rs \
+        --replace-fail '.arg("build")' '.arg("build")
+            .arg("-Dcpu=baseline")' \
         --replace-fail '.arg(format!("-Dtarget={zig_target}"))' ""
     '';
 
