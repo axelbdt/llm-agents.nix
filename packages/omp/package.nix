@@ -102,8 +102,7 @@ stdenv.mkDerivation {
     bunNix = ./bun.nix;
   };
 
-  # Remove robomp-web workspace so bun doesn't try to resolve its
-  # devDependencies (vite, tailwindcss, etc.) which aren't needed for the CLI.
+  # Drop robomp-web workspace: its devDependencies aren't needed for the CLI.
   postUnpack = ''
         rm -rf $sourceRoot/python/robomp/web
         ROOT="$sourceRoot" ${lib.getExe python3} -c "
@@ -145,10 +144,8 @@ stdenv.mkDerivation {
   dontStrip = true;
 
   postPatch = ''
-    # bun resolves caret-range specifiers via the npm registry even when the
-    # pinned version is already in the local cache. In the Nix sandbox this
-    # fails because the network is blocked. Strip ^ and ~ prefixes so bun
-    # treats them as exact.
+    # Strip ^ and ~ prefixes: bun resolves range specifiers via the npm
+    # registry, which is unreachable in the sandbox.
     for f in package.json packages/*/package.json; do
       if [ -f "$f" ]; then
         sed -i 's/: "\^/: "/g; s/: "~/: "/g' "$f"
@@ -156,16 +153,19 @@ stdenv.mkDerivation {
     done
     sed -i 's/: "\^/: "/g; s/: "~/: "/g' bun.lock
 
-    # swarm-extension declares a peerDependency on @oh-my-pi/pi-coding-agent
-    # with a hard-coded major (e.g. ^13) that upstream forgot to bump for the
-    # v14 release. With the workspace package now at 14.x bun cannot satisfy
-    # the constraint locally and falls back to the npm registry, which is
-    # unreachable in the sandbox. Rewrite it to the workspace reference.
+    # Relax engines.bun to the bun doing the compile, otherwise omp refuses
+    # to start when the embedded runtime is older than upstream's minimum
+    # (issue #4996).
+    sed -i 's/"bun": ">=[0-9.]*"/"bun": ">='"$(bun --version)"'"/' \
+      packages/utils/package.json
+
+    # swarm-extension pins @oh-my-pi/pi-coding-agent to a stale major, which
+    # bun can't satisfy locally and would fetch from npm. Use the workspace
+    # reference instead.
     sed -i 's|"@oh-my-pi/pi-coding-agent": "[0-9][^"]*"|"@oh-my-pi/pi-coding-agent": "workspace:*"|' \
       packages/swarm-extension/package.json bun.lock
 
-    # Reset the stats embedded client bundle to the placeholder so we don't
-    # need to build the full React dashboard.
+    # Placeholder client bundle avoids building the full React dashboard.
     cat > packages/stats/src/embedded-client.generated.txt <<'PLACEHOLDER'
     export const EMBEDDED_CLIENT_ARCHIVE_TAR_GZ_BASE64 = "";
     PLACEHOLDER
@@ -191,8 +191,7 @@ stdenv.mkDerivation {
     cp target/${rustTarget}/release/${platform.nativeLib} \
        packages/natives/native/pi_natives.${platform.nodeTag}.node
 
-    # Generate the napi type definitions and JS loader by running the
-    # napi CLI from node_modules
+    # Generate the napi type definitions and JS loader
     napiBin="$(pwd)/node_modules/.bin/napi"
     if [ -x "$napiBin" ]; then
       "$napiBin" build \
@@ -234,9 +233,7 @@ stdenv.mkDerivation {
 
     mkdir -p $out/lib/omp $out/bin
     cp dist/omp $out/lib/omp/omp
-    # native.ts probes dirname(process.execPath) for the addon. On x64 it
-    # looks for -modern / -baseline / plain in that order, on arm64 only
-    # the plain name. Ship the plain name so both arches resolve it.
+    # Ship the plain addon name: native.ts probes for it on every arch.
     cp packages/natives/native/pi_natives.${platform.nodeTag}.node $out/lib/omp/
 
     makeWrapper $out/lib/omp/omp $out/bin/omp \
