@@ -164,14 +164,14 @@ let
 in
 python.pkgs.buildPythonApplication rec {
   pname = "mistral-vibe";
-  version = "2.9.6";
+  version = "2.10.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "mistralai";
     repo = "mistral-vibe";
     rev = "v${version}";
-    hash = "sha256-4zfeMbqM43Gd/s7EDROEHste1+0+X9Qs3LUIxCp2Clg=";
+    hash = "sha256-Xf79PFhBguJQlLcdNhh3oSQ4w5EHrXZomnniiM99WZ4=";
   };
 
   build-system = with python.pkgs; [
@@ -217,23 +217,10 @@ python.pkgs.buildPythonApplication rec {
     zstandard
   ];
 
-  # Relax version constraints - nixpkgs versions are slightly older but compatible.
-  # NOTE: do NOT relax opentelemetry-* here; those constraints encode real API
-  # requirements (see issue #3668) and are satisfied by the overrides above.
-  pythonRelaxDeps = [
-    "agent-client-protocol"
-    "certifi"
-    "cryptography"
-    "gitpython"
-    "giturlparse"
-    "keyring"
-    "mistralai"
-    "pydantic"
-    "pydantic-settings"
-    "pyyaml"
-    "watchfiles"
-    "zstandard"
-  ];
+  # Upstream 2.10.0 pins the full transitive dependency closure with `==` in
+  # pyproject.toml. Relax everything; the opentelemetry API requirements
+  # (see issue #3668) are still met by the version overrides above.
+  pythonRelaxDeps = true;
 
   pythonImportsCheck = [ "vibe" ];
 
