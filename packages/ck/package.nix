@@ -10,7 +10,7 @@
 }:
 rustPlatform.buildRustPackage {
   pname = "ck";
-  version = "0.7.6";
+  version = "0.7.11";
 
   src = fetchFromGitHub {
     owner = "BeaconBay";
