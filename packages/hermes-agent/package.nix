@@ -122,13 +122,13 @@ let
     };
   };
 
-  version = "2026.5.28";
+  version = "2026.5.29";
 
   src = fetchFromGitHub {
     owner = "NousResearch";
     repo = "hermes-agent";
     rev = "v${version}";
-    hash = "sha256-xga5EYW+P/nP6OstGQ5W/XButRZK0ua41t1+9mbYOys=";
+    hash = "sha256-4SwFC4IjwdQi27dHXTd8QYS1eJHiQY0ja2LxyeW6KjE=";
   };
 
   # `hermes --tui` runs a compiled Ink/React app from ui-tui/ that the wheel
@@ -158,7 +158,7 @@ let
     pname = "hermes-web";
     inherit version;
     src = "${src}/web";
-    npmDepsHash = "sha256-HWB1piIPglTXbzQHXFYHLgVZIbDb60esupXSQGa1+lI=";
+    npmDepsHash = "sha256-HV0aISBVjwbGqDj8qQynSxGFrrZDzuYAW3D3lB/x3zo=";
 
     buildPhase = ''
       runHook preBuild
