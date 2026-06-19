@@ -221,6 +221,16 @@ Nix packages for AI coding agents and development tools. Automatically updated d
 
 </details>
 <details>
+<summary><strong>maki</strong> - Efficient AI coding agent with a native Rust TUI</summary>
+
+- **Source**: source
+- **License**: MIT
+- **Homepage**: https://maki.sh
+- **Usage**: `nix run github:numtide/llm-agents.nix#maki -- --help`
+- **Nix**: [packages/maki/package.nix](packages/maki/package.nix)
+
+</details>
+<details>
 <summary><strong>mimo-code</strong> - Open-source AI coding agent with cross-session memory</summary>
 
 - **Source**: binary
